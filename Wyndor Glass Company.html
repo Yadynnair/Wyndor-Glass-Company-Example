@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wyndor Glass Company Product Mix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 1rem;
+            padding: 4px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+        input[type="number"] {
+            width: 80px;
+            margin-left: 10px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            padding: 4px;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+        }
+        .constraint {
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .valid {
+            color: green;
+            background-color: #e0f8e0;
+            border: 1px solid green;
+        }
+        .invalid {
+            color: red;
+            background-color: #f8e0e0;
+            border: 1px solid red;
+        }
+        .objective-function {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        p.instructions {
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Wyndor Glass Company Product Mix Problem</h2>
+    <p class="instructions">Enter the number of batches for each product (non-negative integers):</p>
+    <form id="lpForm" onsubmit="return false;">
+        <label for="x1">Product 1 (Glass Doors, x<sub>1</sub>):</label>
+        <input type="number" id="x1" min="0" step="1" value="0" />
+        <br />
+        <label for="x2">Product 2 (Wood Windows, x<sub>2</sub>):</label>
+        <input type="number" id="x2" min="0" step="1" value="0" />
+        <br />
+    </form>
+
+    <div id="results">
+        <p class="objective-function" id="objectiveFunc">
+            Objective: Z = 3000x<sub>1</sub> + 5000x<sub>2</sub> (in dollars)
+        </p>
+        <p>
+            <strong>Computed Profit:</strong> $<span id="profit">0</span>
+        </p>
+
+        <div id="constraints">
+            <div id="c1" class="constraint"></div>
+            <div id="c2" class="constraint"></div>
+            <div id="c3" class="constraint"></div>
+        </div>
+    </div>
+
+    <script>
+        const profitPerBatch = { x1: 3000, x2: 5000 }; // profit in dollars (not thousands)
+
+        const constraints = {
+            plant1: { 
+                lhs: (x1, x2) => x1,
+                rhs: 4,
+                name: "Plant 1 capacity: x<sub>1</sub> ≤ 4"
+            },
+            plant2: {
+                lhs: (x1, x2) => 2 * x2,
+                rhs: 12,
+                name: "Plant 2 capacity: 2x<sub>2</sub> ≤ 12"
+            },
+            plant3: {
+                lhs: (x1, x2) => 3 * x1 + 2 * x2,
+                rhs: 18,
+                name: "Plant 3 capacity: 3x<sub>1</sub> + 2x<sub>2</sub> ≤ 18"
+            }
+        };
+
+        function update() {
+            const x1Input = document.getElementById('x1').value;
+            const x2Input = document.getElementById('x2').value;
+            const x1 = parseInt(x1Input, 10);
+            const x2 = parseInt(x2Input, 10);
+
+            if (isNaN(x1) || x1 < 0 || isNaN(x2) || x2 < 0) {
+                document.getElementById('profit').textContent = "N/A";
+                document.getElementById('c1').innerHTML = "";
+                document.getElementById('c2').innerHTML = "";
+                document.getElementById('c3').innerHTML = "";
+                return;
+            }
+
+            const profit = profitPerBatch.x1 * x1 + profitPerBatch.x2 * x2;
+            document.getElementById('profit').textContent = profit.toLocaleString();
+
+            const c1Value = constraints.plant1.lhs(x1, x2);
+            const c1Ok = c1Value <= constraints.plant1.rhs;
+            const c1Div = document.getElementById('c1');
+            c1Div.innerHTML = `${constraints.plant1.name}: ${c1Value} ≤ ${constraints.plant1.rhs}`;
+            c1Div.className = "constraint " + (c1Ok ? "valid" : "invalid");
+
+            const c2Value = constraints.plant2.lhs(x1, x2);
+            const c2Ok = c2Value <= constraints.plant2.rhs;
+            const c2Div = document.getElementById('c2');
+            c2Div.innerHTML = `${constraints.plant2.name}: ${c2Value} ≤ ${constraints.plant2.rhs}`;
+            c2Div.className = "constraint " + (c2Ok ? "valid" : "invalid");
+
+            const c3Value = constraints.plant3.lhs(x1, x2);
+            const c3Ok = c3Value <= constraints.plant3.rhs;
+            const c3Div = document.getElementById('c3');
+            c3Div.innerHTML = `${constraints.plant3.name}: ${c3Value} ≤ ${constraints.plant3.rhs}`;
+            c3Div.className = "constraint " + (c3Ok ? "valid" : "invalid");
+        }
+
+        document.getElementById('x1').addEventListener('input', update);
+        document.getElementById('x2').addEventListener('input', update);
+
+        update();
+    </script>
+</body>
+</html>
